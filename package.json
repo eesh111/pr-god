@@ -20,7 +20,8 @@
     "test:mock": "node test/mock-e2e.mjs",
     "test:integration": "node test/integration-mcp.mjs",
     "test:http": "npm run build && node test/http-smoke.mjs",
-    "pr-god": "node scripts/run-pr-god-ci.mjs"
+    "pr-god": "node scripts/run-pr-god-ci.mjs",
+    "pr-god:offline": "node scripts/run-pr-god-offline.mjs"
   },
   "keywords": [
     "mcp",

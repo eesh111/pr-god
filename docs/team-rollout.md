@@ -1,36 +1,30 @@
-# Team rollout: IDE vs dashboard MCP + multi-repo
+# Team rollout: IDE MCP, Automations, and PR-God (GHA)
 
-## Two MCP registrations (intentional)
+## Reality check (this project)
+
+Cursor **Automations** only fire after GitHub is connected at [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations) (install the [Cursor GitHub App](https://github.com/apps/cursor) on the repo). If that connect fails, use **PR-God via GitHub Actions** instead — [docs/pr-god.md](./pr-god.md). That is the finished path for `eesh111/bugbot-demo`.
+
+## Two MCP surfaces (when you use IDE / Automations)
 
 | Who / when | Use |
 | --- | --- |
-| Engineer in Cursor chat | Local **stdio** MCP named `pr-reviewer` in `~/.cursor/mcp.json` + `/review-pr` (dry-run → confirm → post) |
-| Every PR automatically | **Dashboard** HTTP MCP (same tool surface) + Cursor Automation on `pull_request` opened/synchronized |
-
-Automations **cannot** call the laptop stdio server. See [dashboard-mcp.md](./dashboard-mcp.md).
+| Engineer in Cursor chat | Local **stdio** MCP `pr-reviewer` in `~/.cursor/mcp.json` + `/review-pr` |
+| Cursor Automations (cloud) | **Dashboard** HTTP MCP — only if GitHub Integrations work; see [dashboard-mcp.md](./dashboard-mcp.md) |
+| Every PR without Automations | **PR-God** GHA (`CURSOR_API_KEY` secret) + stdio MCP in CI |
 
 ## Auth for the bot (recommended)
 
-1. Create a **GitHub App** (not a personal PAT) with Contents read + Pull requests read/write on target repos.
-2. Install the App on the org / selected repos.
-3. Configure the **hosted** HTTP MCP with `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_APP_INSTALLATION_ID` (see `.env.example`).
-4. Store App credentials in the host’s secrets manager — never in repo git history.
-5. Engineers keep their own PAT/App install only for personal IDE stdio if needed; production Automations should use the shared App.
-
-## Automation playbook (auto-post)
-
-Unlike chat `/review-pr`, the Automation path **skips human confirm** and calls `post_review` with `dry_run: false`, event type `COMMENT` only. Stop on `unauthorized` / `forbidden` / `rate_limit`.
-
-Scope v1 example: repo `eesh111/bugbot-demo`. Expand by editing the Automation trigger’s repo list (or one Automation per team).
+1. Create a **GitHub App** or use Actions `GITHUB_TOKEN` (PR-God workflow already requests `pull-requests: write`).
+2. For CI agent brain: team/shared **CURSOR_API_KEY** in each repo’s Actions secrets.
+3. Engineers keep personal PAT only for local `/review-pr` if needed.
 
 ## Adding more repos
 
-1. Install the GitHub App on each new repo (or org-wide).
-2. In the Automations editor, add the repo to the PR trigger scope.
-3. Commit `.github/REVIEW_INSTRUCTIONS.md` in that repo (hard overrides for the agent).
-4. Share the Bugbot playbook as a **team Cursor rule** so chat `/review-pr` matches Automation behavior (Automations carry instructions in the workflow prompt; they do not auto-load another repo’s `.cursor/rules`).
+1. Copy `.github/workflows/pr-god.yml` from `bugbot-demo` (or `docs/pr-god.workflow.yml`).
+2. Add secret `CURSOR_API_KEY`.
+3. Commit `.github/REVIEW_INSTRUCTIONS.md`.
+4. If `pr-checker` is private, make it public or add a read PAT for checkout.
 
-## Optional later
+## Optional: Cursor Automations later
 
-- Tighten Automation instructions to “security findings only” if COMMENT noise is high.
-- Fallback if dashboard hosting is blocked: GitHub Action on `pull_request` that runs a cloud agent / script with the same GitHub posting path (different product surface).
+Once GitHub Integrations connect successfully: register dashboard MCP, bind MCP to automation **PR-God**, same playbook with auto `post_review`. Until then, GHA is the supported “every PR” path.

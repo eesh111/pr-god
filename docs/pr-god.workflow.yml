@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: eesh111/pr-checker
+          ref: feature/pr-god
           path: pr-checker
           # For private pr-checker, set a PAT secret and:
           # token: ${{ secrets.PR_CHECKER_READ_TOKEN }}
