@@ -17,12 +17,12 @@ jobs:
       - name: Checkout PR
         uses: actions/checkout@v4
 
-      - name: Checkout pr-checker MCP
+      - name: Checkout pr-god MCP
         uses: actions/checkout@v4
         with:
-          repository: eesh111/pr-checker
+          repository: eesh111/pr-god
           ref: feature/pr-god
-          path: pr-checker
+          path: pr-god
           # For private pr-checker, set a PAT secret and:
           # token: ${{ secrets.PR_CHECKER_READ_TOKEN }}
 
@@ -31,14 +31,14 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: pr-checker/package-lock.json
+          cache-dependency-path: pr-god/package-lock.json
 
       - name: Build MCP + install SDK
-        working-directory: pr-checker
+        working-directory: pr-god
         run: npm ci && npm run build
 
       - name: Run PR-God
-        working-directory: pr-checker
+        working-directory: pr-god
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -23,14 +23,14 @@ npm run start:http             # http://0.0.0.0:8787/mcp
 Docker:
 
 ```bash
-docker build -t pr-reviewer-mcp .
+docker build -t pr-god-mcp .
 docker run --rm -p 8787:8787 \
   -e GITHUB_TOKEN \
   -e MCP_HTTP_BEARER \
-  pr-reviewer-mcp
+  pr-god-mcp
 ```
 
-Health check: `GET /health` → `{ "ok": true, "name": "pr-reviewer", ... }`.
+Health check: `GET /health` → `{ "ok": true, "name": "pr-god", ... }`.
 
 ## 2. Expose a public HTTPS URL
 
@@ -45,7 +45,7 @@ MCP endpoint URL shape: `https://<host>/mcp`
 
 1. Open [cursor.com](https://cursor.com) → **Settings → MCP** (or team MCP for shared use).
 2. Add a new server:
-   - **Name:** `pr-reviewer` (keep this name — Automations drafts look for it)
+   - **Name:** `pr-god` (keep this name — Automations drafts look for it)
    - **URL:** `https://<host>/mcp`
    - **Auth:** Bearer / header using the same value as `MCP_HTTP_BEARER`
 3. Save and confirm it shows as connected.
@@ -53,7 +53,7 @@ MCP endpoint URL shape: `https://<host>/mcp`
 
 ## 4. Confirm Automations eligibility
 
-In **Automations → new automation → tools**, `pr-reviewer` should appear in the MCP list. If it does not, the server is still IDE-only (stdio) or the dashboard entry is misnamed / disconnected.
+In **Automations → new automation → tools**, `pr-god` should appear in the MCP list. If it does not, the server is still IDE-only (stdio) or the dashboard entry is misnamed / disconnected.
 
 ## 5. Keep IDE stdio for manual reviews
 

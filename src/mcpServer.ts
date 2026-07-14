@@ -10,10 +10,10 @@ async function main(): Promise<void> {
   const server = createPrReviewerServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[pr-review-mcp] server running on stdio; waiting for JSON-RPC requests.");
+  console.error("[pr-god] server running on stdio; waiting for JSON-RPC requests.");
 }
 
 main().catch((err) => {
-  console.error("[pr-review-mcp] fatal error starting server:", err);
+  console.error("[pr-god] fatal error starting server:", err);
   process.exit(1);
 });

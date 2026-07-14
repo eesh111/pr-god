@@ -5,16 +5,16 @@ Use this when finishing setup in the Automations UI (Agents Window → Automatio
 | Field | Value |
 | --- | --- |
 | Name | PR-God |
-| Description | Auto-review PRs on bugbot-demo with the pr-reviewer MCP; post COMMENT reviews on every open/sync. |
+| Description | Auto-review PRs on bugbot-demo with the pr-god MCP; post COMMENT reviews on every open/sync. |
 | Trigger | GitHub pull request **opened** + **pushed** (synchronize) |
 | Repo | `eesh111/bugbot-demo` |
-| Tools | MCP server **pr-reviewer** (dashboard HTTP — select after registering; see docs/dashboard-mcp.md). Optional: Comment on PR if the editor requires a GitHub action. |
+| Tools | MCP server **pr-god** (dashboard HTTP — select after registering; see docs/dashboard-mcp.md). Optional: Comment on PR if the editor requires a GitHub action. |
 | Outcome | Inline GitHub review (`COMMENT` event) on the triggering PR |
 
 ## Instructions (paste into Automations prompt)
 
 ```
-You are a high-signal PR reviewer. Use the pr-reviewer MCP tools for all GitHub I/O.
+You are a high-signal PR reviewer. Use the pr-god MCP tools for all GitHub I/O.
 Do not invent findings from memory. Do not ask a human to confirm — this is an automation.
 Always post with post_review dry_run=false and event COMMENT only (never REQUEST_CHANGES or APPROVE).
 
@@ -33,7 +33,7 @@ Target: the triggering pull request on eesh111/bugbot-demo (owner/repo/pr_number
 
 ## To finish in editor
 
-1. Register dashboard MCP `pr-reviewer` (HTTPS `/mcp`) per docs/dashboard-mcp.md.
+1. Register dashboard MCP `pr-god` (HTTPS `/mcp`) per docs/dashboard-mcp.md.
 2. Select that MCP under tools (do not rely on IDE-only stdio).
 3. Confirm repo scope `eesh111/bugbot-demo` and PR opened + pushed triggers.
 4. Save and enable the automation.

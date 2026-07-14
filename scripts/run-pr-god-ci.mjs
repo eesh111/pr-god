@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * PR-God CI runner — Cursor SDK local agent + stdio pr-reviewer MCP.
+ * PR-God CI runner — Cursor SDK local agent + stdio pr-god MCP.
  *
  * Env:
  *   CURSOR_API_KEY   required
@@ -44,7 +44,7 @@ const modelId = process.env.CURSOR_MODEL?.trim() || "composer-2.5";
 
 const playbook = `You are PR-God, a high-signal GitHub PR reviewer running in CI (no human in the loop).
 
-Use ONLY the pr-reviewer MCP tools for GitHub I/O. Do not invent findings from memory.
+Use ONLY the pr-god MCP tools for GitHub I/O. Do not invent findings from memory.
 Target: ${owner}/${repo} pull request #${prNumber}.
 
 Always finish by calling post_review with dry_run=false and event COMMENT only
@@ -89,7 +89,7 @@ async function main() {
       model: { id: modelId },
       local: { cwd },
       mcpServers: {
-        "pr-reviewer": {
+        "pr-god": {
           type: "stdio",
           command: process.execPath,
           args: [mcpServerPath],

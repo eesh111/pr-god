@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Shared MCP server factory: registers all pr-reviewer tools.
+ * Shared MCP server factory: registers all pr-god tools.
  * Used by both stdio (IDE) and HTTP (dashboard / Automations) entrypoints.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -23,7 +23,7 @@ const readOnly = { readOnlyHint: true, openWorldHint: true } as const;
 const writeHints = { readOnlyHint: false, destructiveHint: false, openWorldHint: true } as const;
 
 export function createPrReviewerServer(): McpServer {
-  const server = new McpServer({ name: "pr-reviewer", version: "1.1.0" });
+  const server = new McpServer({ name: "pr-god", version: "1.1.0" });
 
   server.registerTool(
     "get_pull_request_diff",

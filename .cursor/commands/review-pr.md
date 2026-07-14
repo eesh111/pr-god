@@ -1,5 +1,5 @@
-Review a GitHub pull request using the `pr-reviewer` MCP server tools
-(agent-driven Bugbot: MCP = I/O, you = judgment).
+Review a GitHub pull request using the `pr-god` MCP server tools
+(PR-God: MCP = I/O, you = judgment).
 
 Arguments (free-form after the command): the target repo and PR, e.g.
 `/review-pr owner/repo #42` or `/review-pr PR 42 on owner/repo`.

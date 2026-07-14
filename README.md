@@ -1,72 +1,48 @@
-# Agent-driven Bugbot (PR Review MCP)
+# PR-God
 
-Your own **Bugbot-style** PR reviewer for Cursor: a **stdio [MCP](https://modelcontextprotocol.io) server**
-is the GitHub I/O layer; **Cursor's agent is the brain**. The server is deliberately
-**data-in / data-out only** — it wraps GitHub reads/writes and context lookups.
-It contains **no review logic, no scoring, and no LLM calls**.
+PR-God reviews GitHub pull requests from Cursor. You run `/pr-god` in chat; Cursor’s agent does the judgment; a local MCP server talks to the GitHub API and posts the review.
 
-Pair it with the included Cursor rule ([`.cursor/rules/pr-review.mdc`](.cursor/rules/pr-review.mdc))
-and slash command [`/review-pr`](.cursor/commands/review-pr.md), which encode the
-Bugbot-style multi-pass workflow (evidence bar, confidence filter, dry-run, one confirmed post).
+This repo is the **MCP + playbook** package. There is **no LLM inside the server**.
 
-| Layer | Owns | Must not own |
-| --- | --- | --- |
-| MCP server | GitHub reads/writes, diff math, validation, retries, honest errors | “Is this a bug?”, scoring, LLM |
-| Cursor agent | Triage, multi-pass review, confidence, dedupe, preview, confirm, post | Raw GitHub HTTP |
+```
+You  →  /pr-god owner/repo #N  →  Cursor agent  →  pr-god MCP (stdio)  →  GitHub PR review
+```
 
-**Triggers:**
+## What it does
 
-| Mode | How |
-| --- | --- |
-| Manual (IDE) | `/review-pr owner/repo #N` — uses **stdio** MCP from `~/.cursor/mcp.json` |
-| Auto (every PR) | Cursor **Automation** on pull request opened/synchronized — needs **dashboard** HTTP MCP; see [docs/dashboard-mcp.md](docs/dashboard-mcp.md) and [docs/team-rollout.md](docs/team-rollout.md) |
+1. Loads `.github/REVIEW_INSTRUCTIONS.md` from the target repo (hard overrides).
+2. Fetches the PR diff and related context.
+3. Walks a multi-pass review (logic, security, tests).
+4. Drops low-confidence / duplicate findings.
+5. Posts one GitHub review (`COMMENT`) with a summary and inline notes.
 
-## Tools
+**Manual only (default):** you start it with `/pr-god`. It does not auto-run on every PR unless you add something else (Actions / Automations).
 
-| Tool | Purpose |
-| --- | --- |
-| `get_pull_request_diff` | PR title/body, head/base SHA, changed files + diff hunks (`patch_present`, `truncated`, `bytes_used`/`bytes_budget`, `omitted_files`, paging, `previous_filename`) |
-| `get_file_content` | Full UTF-8 text at a ref (Contents API, with Git Blobs fallback for large files) |
-| `get_file_context` | A window of lines centered on a line (rejects out-of-range lines) |
-| `search_codebase` | GitHub code search scoped to the repo (strips foreign `repo:` qualifiers; rate-limited) |
-| `get_existing_review_comments` | Review threads with resolved/outdated (GraphQL paginated; REST fallback uses `null` + note) |
-| `get_review_rules` | Reads `.github/REVIEW_INSTRUCTIONS.md` from the **target** repo |
-| `post_review` | Posts one review = summary + all inline comments (`dry_run` preview; locks to current head SHA) |
-| `post_comment` | Posts a single inline comment |
-
-### Reliability behavior worth knowing
-
-- **Line validation (no opaque 422s):** invalid inline lines return `validation` with nearest valid lines.
-- **Commit SHA lock:** stale `commit_sha` values are rejected; omit to use current head.
-- **Large PRs / files:** omitted patches flagged; blob fallback for Contents >1MB files.
-- **Standardized errors:** `not_found`, `unauthorized`, `forbidden`, `rate_limit`, `validation`, `network`, `unknown`.
-
-## Prerequisites
+## Requirements
 
 - Node.js 18+
-- A GitHub credential (PAT or GitHub App)
+- Cursor with MCP enabled
+- A GitHub token (or GitHub App) with **Contents: read** and **Pull requests: read/write** on repos you review
 
-## Install & build
+## Install
 
 ```bash
+git clone https://github.com/eesh111/pr-god.git
+cd pr-god
 npm install
 npm run build
 ```
 
-Entrypoint: `dist/mcpServer.js`.
+## Configure Cursor MCP
 
-## Registering in Cursor (MCP)
-
-### IDE (stdio) — manual `/review-pr`
-
-`~/.cursor/mcp.json`:
+Add to `~/.cursor/mcp.json` (use your absolute path and token):
 
 ```json
 {
   "mcpServers": {
-    "pr-reviewer": {
+    "pr-god": {
       "command": "node",
-      "args": ["/absolute/path/to/pr-checker/dist/mcpServer.js"],
+      "args": ["/absolute/path/to/pr-god/dist/mcpServer.js"],
       "env": {
         "GITHUB_TOKEN": "ghp_your_token_here"
       }
@@ -75,38 +51,67 @@ Entrypoint: `dist/mcpServer.js`.
 }
 ```
 
-Restart Cursor or toggle the server in **Settings → MCP**.
+Restart Cursor or toggle the server under **Settings → MCP**.
 
-### Automations (HTTP) — every PR
+Auth options and limits: see [`.env.example`](.env.example).
 
-Local stdio is **not** Automations-eligible. Host Streamable HTTP and register on cursor.com:
+## Usage
 
-```bash
-npm run start:http   # listens on PORT (default 8787), path /mcp
+In Cursor chat:
+
+```text
+/pr-god owner/repo #42
 ```
 
-Full steps (public URL, Bearer, dashboard name `pr-reviewer`, Docker): [docs/dashboard-mcp.md](docs/dashboard-mcp.md).
+That run uses the PR-God playbook and **posts** the review (no second confirm).
 
-Any MCP-compatible client can host the tools the same way. The server is **client-agnostic**: it only exposes tools; the agent/LLM lives in the client.
+For dry-run then confirm:
 
-## Using it
-
-- `/review-pr eesh111/bugbot-demo #1` (or any `owner/repo #N`)
-- Or: `review PR #1 on eesh111/bugbot-demo using our review rules`
-
-The agent loads rules, diffs, verifies findings, dry-runs `post_review`, and posts only after you confirm.
-
-## Auth
-
-See [`.env.example`](.env.example). PAT needs Contents read + Pull requests read/write. GitHub App needs all three `GITHUB_APP_*` vars and optional `@octokit/auth-app`.
-
-## Tests
-
-```bash
-npm test
+```text
+/review-pr owner/repo #42
 ```
 
-Synthetic only — no real GitHub / no real token.
+Playbook sources:
+
+- [`.cursor/commands/pr-god.md`](.cursor/commands/pr-god.md)
+- [`.cursor/commands/review-pr.md`](.cursor/commands/review-pr.md)
+- [`.cursor/rules/pr-review.mdc`](.cursor/rules/pr-review.mdc)
+
+Optional per-repo overrides: commit `.github/REVIEW_INSTRUCTIONS.md` in the app under review.
+
+## MCP tools
+
+| Tool | Role |
+| --- | --- |
+| `get_review_rules` | Repo review instructions |
+| `get_pull_request_diff` | PR metadata + hunks |
+| `get_file_content` / `get_file_context` | File text / line window |
+| `search_codebase` | Scoped code search (rate-limited) |
+| `get_existing_review_comments` | Existing threads (dedupe) |
+| `post_review` | One summary + all inlines (`dry_run` supported) |
+| `post_comment` | Single inline (prefer `post_review`) |
+
+Built-in safeguards: diff line validation, head SHA lock, large-file blob fallback, structured errors (`unauthorized`, `forbidden`, `rate_limit`, `validation`, …).
+
+## Scripts
+
+```bash
+npm run build          # compile TypeScript → dist/
+npm start              # stdio MCP (what Cursor launches)
+npm test               # offline unit + integration suite
+npm run pr-god         # optional CI agent runner (needs CURSOR_API_KEY)
+npm run pr-god:offline # optional CI heuristics (GITHUB_TOKEN only)
+```
+
+## Sharing with teammates
+
+Each person:
+
+1. Clones this repo and builds it.
+2. Points Cursor MCP `pr-god` at their `dist/mcpServer.js` with **their** GitHub token.
+3. Runs `/pr-god their-org/their-repo #N` on PRs they can access.
+
+Reviews are posted as the token’s GitHub identity. No hosted MCP and no Cursor API key required for the chat path.
 
 ## License
 

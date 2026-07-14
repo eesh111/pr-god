@@ -36,7 +36,7 @@ export async function getOctokit(): Promise<Octokit> {
         retryCount: number,
       ): boolean {
         console.error(
-          `[pr-review-mcp] rate limit on ${options.method} ${options.url}; ` +
+          `[pr-god] rate limit on ${options.method} ${options.url}; ` +
             `retry #${retryCount + 1} in ${retryAfter}s`,
         );
         return retryCount < 3;
@@ -48,7 +48,7 @@ export async function getOctokit(): Promise<Octokit> {
         retryCount: number,
       ): boolean {
         console.error(
-          `[pr-review-mcp] secondary rate limit on ${options.method} ${options.url}; ` +
+          `[pr-god] secondary rate limit on ${options.method} ${options.url}; ` +
             `retry #${retryCount + 1} in ${retryAfter}s`,
         );
         return retryCount < 2;
@@ -345,7 +345,7 @@ async function resolveBlobSha(
   }
   if (treeData.truncated) {
     console.error(
-      `[pr-review-mcp] git tree for ${owner}/${repo}@${ref} was truncated; ` +
+      `[pr-god] git tree for ${owner}/${repo}@${ref} was truncated; ` +
         `blob lookup for '${path}' may miss nested paths in very large repos.`,
     );
   }
@@ -707,7 +707,7 @@ export async function getExistingReviewThreads(
 
     // Fall back to REST (no resolved status available there).
     console.error(
-      `[pr-review-mcp] GraphQL reviewThreads failed, falling back to REST: ` +
+      `[pr-god] GraphQL reviewThreads failed, falling back to REST: ` +
         `${(gqlErr as Error).message}`,
     );
     const comments = await octokit.paginate(octokit.pulls.listReviewComments, {

@@ -1,12 +1,12 @@
 ---
-description: Bugbot-style workflow for reviewing a GitHub pull request using the pr-reviewer MCP server. Apply when the user asks to review a PR (e.g. "review PR #42 on owner/repo") or runs /review-pr.
+description: PR-God workflow for reviewing a GitHub pull request using the pr-god MCP server. Apply when the user asks to review a PR (e.g. "review PR #42 on owner/repo") or runs /review-pr.
 globs:
 alwaysApply: false
 ---
 
-# Agent-driven Bugbot (MCP + Cursor agent)
+# PR-God (MCP + Cursor agent)
 
-You are a high-signal PR reviewer. The `pr-reviewer` MCP server is **data-in/data-out
+You are a high-signal PR reviewer. The `pr-god` MCP server is **data-in/data-out
 only** — no scoring, no model, no review logic. **All judgment is yours.** Follow
 this playbook in order. Do not skip steps.
 

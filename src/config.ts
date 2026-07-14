@@ -32,7 +32,7 @@ const rawSchema = z.object({
 
 function fail(message: string): never {
   // stderr only: stdout is the JSON-RPC channel for stdio transport.
-  console.error(`[pr-review-mcp] config error: ${message}`);
+  console.error(`[pr-god] config error: ${message}`);
   process.exit(1);
 }
 

@@ -8,7 +8,7 @@ Cursor **Automations** only fire after GitHub is connected at [cursor.com/dashbo
 
 | Who / when | Use |
 | --- | --- |
-| Engineer in Cursor chat | Local **stdio** MCP `pr-reviewer` in `~/.cursor/mcp.json` + `/review-pr` |
+| Engineer in Cursor chat | Local **stdio** MCP `pr-god` in `~/.cursor/mcp.json` + `/review-pr` |
 | Cursor Automations (cloud) | **Dashboard** HTTP MCP — only if GitHub Integrations work; see [dashboard-mcp.md](./dashboard-mcp.md) |
 | Every PR without Automations | **PR-God** GHA (`CURSOR_API_KEY` secret) + stdio MCP in CI |
 
@@ -23,7 +23,7 @@ Cursor **Automations** only fire after GitHub is connected at [cursor.com/dashbo
 1. Copy `.github/workflows/pr-god.yml` from `bugbot-demo` (or `docs/pr-god.workflow.yml`).
 2. Add secret `CURSOR_API_KEY`.
 3. Commit `.github/REVIEW_INSTRUCTIONS.md`.
-4. If `pr-checker` is private, make it public or add a read PAT for checkout.
+4. If `pr-god` is private, make it public or add a read PAT for checkout.
 
 ## Optional: Cursor Automations later
 

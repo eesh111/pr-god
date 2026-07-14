@@ -1,5 +1,5 @@
 /**
- * Live end-to-end evaluation of the agent-driven Bugbot MCP client
+ * Live end-to-end evaluation of the PR-God MCP client
  * against https://github.com/eesh111/bugbot-demo/pull/1
  *
  * Always uses postReview(..., dry_run: true). Never posts a real review.
@@ -327,7 +327,7 @@ out();
 
 // --- Accuracy: planted bugs ------------------------------------------------
 
-out("## Accuracy — planted bugs visible to a Bugbot-style agent?");
+out("## Accuracy — planted bugs visible to a PR-God agent?");
 out();
 
 const planted = [

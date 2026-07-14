@@ -50,7 +50,7 @@ async function main(): Promise<void> {
   app.get("/health", (_req, res) => {
     res.json({
       ok: true,
-      name: "pr-reviewer",
+      name: "pr-god",
       transport: "streamable-http",
       auth: BEARER ? "bearer" : "none",
     });
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (id) => {
             sessions.set(id, { transport });
-            console.error(`[pr-review-mcp] http session started: ${id}`);
+            console.error(`[pr-god] http session started: ${id}`);
           },
         });
 
@@ -81,7 +81,7 @@ async function main(): Promise<void> {
           const id = transport.sessionId;
           if (id) {
             sessions.delete(id);
-            console.error(`[pr-review-mcp] http session closed: ${id}`);
+            console.error(`[pr-god] http session closed: ${id}`);
           }
         };
 
@@ -96,7 +96,7 @@ async function main(): Promise<void> {
           "Expected InitializeRequest without session, or a request with a valid mcp-session-id.",
       });
     } catch (err) {
-      console.error("[pr-review-mcp] http /mcp error:", err);
+      console.error("[pr-god] http /mcp error:", err);
       if (!res.headersSent) {
         res.status(500).json({ error: "internal_error", message: String((err as Error).message) });
       }
@@ -127,13 +127,13 @@ async function main(): Promise<void> {
 
   app.listen(PORT, HOST, () => {
     console.error(
-      `[pr-review-mcp] HTTP server listening on http://${HOST}:${PORT}/mcp` +
+      `[pr-god] HTTP server listening on http://${HOST}:${PORT}/mcp` +
         (BEARER ? " (Bearer auth enabled)" : " (WARNING: no MCP_HTTP_BEARER set)"),
     );
   });
 }
 
 main().catch((err) => {
-  console.error("[pr-review-mcp] fatal error starting HTTP server:", err);
+  console.error("[pr-god] fatal error starting HTTP server:", err);
   process.exit(1);
 });

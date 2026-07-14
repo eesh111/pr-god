@@ -154,7 +154,7 @@ export function withToolError<Args>(
         },
       };
       // Log full context to stderr for debugging; stdout stays protocol-only.
-      console.error(`[pr-review-mcp] tool error (${toolErr.kind}): ${toolErr.message}`);
+      console.error(`[pr-god] tool error (${toolErr.kind}): ${toolErr.message}`);
       return {
         content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
         isError: true,

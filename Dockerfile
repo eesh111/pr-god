@@ -1,4 +1,4 @@
-# Host pr-reviewer MCP for Cursor dashboard / Automations (Streamable HTTP).
+# Host pr-god MCP for Cursor dashboard / Automations (Streamable HTTP).
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

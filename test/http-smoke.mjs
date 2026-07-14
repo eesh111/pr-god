@@ -53,7 +53,7 @@ try {
 
   const health = await fetch(`${base}/health`).then((r) => r.json());
   assert(health.ok === true, "health.ok");
-  assert(health.name === "pr-reviewer", "health.name");
+  assert(health.name === "pr-god", "health.name");
   assert(health.auth === "bearer", "health.auth");
 
   const noAuth = await fetch(`${base}/mcp`, {
@@ -95,8 +95,8 @@ try {
   const sessionId = initRes.headers.get("mcp-session-id");
   assert(sessionId, "missing mcp-session-id header");
   assert(
-    bodyText.includes("pr-reviewer") ||
-      bodyText.includes("pr-review-mcp") ||
+    bodyText.includes("pr-god") ||
+      bodyText.includes("pr-god") ||
       bodyText.includes("result") ||
       bodyText.includes("serverInfo"),
     `unexpected initialize body: ${bodyText.slice(0, 500)}`,

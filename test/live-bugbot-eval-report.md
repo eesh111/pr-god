@@ -55,7 +55,7 @@ When: 2026-07-14T06:26:48.833Z
 - total_count: 0
 - matches: (none)
 
-## Accuracy — planted bugs visible to a Bugbot-style agent?
+## Accuracy — planted bugs visible to a PR-God agent?
 
 | Bug | Locatable from tool data? | Evidence (path:line) |
 | --- | --- | --- |
