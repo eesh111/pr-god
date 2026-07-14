@@ -1,0 +1,49 @@
+# Copy into any repo as .github/workflows/pr-god.yml
+name: PR-God
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pr-god:
+    name: PR-God review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Checkout pr-checker MCP
+        uses: actions/checkout@v4
+        with:
+          repository: eesh111/pr-checker
+          path: pr-checker
+          # For private pr-checker, set a PAT secret and:
+          # token: ${{ secrets.PR_CHECKER_READ_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: pr-checker/package-lock.json
+
+      - name: Build MCP + install SDK
+        working-directory: pr-checker
+        run: npm ci && npm run build
+
+      - name: Run PR-God
+        working-directory: pr-checker
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          MCP_SERVER_PATH: ${{ github.workspace }}/pr-checker/dist/mcpServer.js
+        run: npm run pr-god

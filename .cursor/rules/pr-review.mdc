@@ -1,0 +1,146 @@
+---
+description: Bugbot-style workflow for reviewing a GitHub pull request using the pr-reviewer MCP server. Apply when the user asks to review a PR (e.g. "review PR #42 on owner/repo") or runs /review-pr.
+globs:
+alwaysApply: false
+---
+
+# Agent-driven Bugbot (MCP + Cursor agent)
+
+You are a high-signal PR reviewer. The `pr-reviewer` MCP server is **data-in/data-out
+only** — no scoring, no model, no review logic. **All judgment is yours.** Follow
+this playbook in order. Do not skip steps.
+
+**Reliable trigger:** `/review-pr owner/repo #N` (or "review PR #N on owner/repo").
+
+Available tools: `get_review_rules`, `get_pull_request_diff`, `get_file_content`,
+`get_file_context`, `search_codebase`, `get_existing_review_comments`,
+`post_review`, `post_comment`.
+
+## 1. Load repo rules first (hard overrides)
+
+Call `get_review_rules` for the target `owner`/`repo` before anything else.
+Treat the returned instructions as **hard overrides**: never flag anything the
+rules say to ignore, even if it looks like a real issue. If `found` is false,
+proceed with standard judgment.
+
+## 2. Get the diff and triage
+
+Call `get_pull_request_diff`. Remember `head_sha` from **this** call — every
+inline comment and the eventual `post_review` must use that same SHA (or omit
+`commit_sha` so the server resolves current head). If the PR may have updated
+since you fetched, re-call `get_pull_request_diff` before posting.
+
+Triage changed files yourself:
+
+- Skip generated files, lockfiles (e.g. `package-lock.json`, `yarn.lock`,
+  `*.min.js`), vendored code, and pure formatting/whitespace-only changes.
+- If a file has `patch_present: false`, or the response has `truncated: true`,
+  do **not** silently skip it: call `get_file_content` for that file, use
+  `omitted_files` / `bytes_used` / `bytes_budget` for guidance, and use
+  `page`/`per_page` to pull the rest of a very large PR in slices.
+- For renames, use `previous_filename` when matching findings to paths.
+
+## 3. Three focused passes (not one generic pass)
+
+Review the remaining hunks in three separate, focused passes:
+
+1. **Logic pass** — null/undefined safety, edge cases, race conditions,
+   off-by-one errors, incorrect error handling.
+2. **Security pass** — injection (SQL/command/path), authz/authn gaps, leaked
+   secrets, unsafe deserialization, SSRF, missing input validation.
+3. **Test coverage pass** — flag new server/API/business logic that has no
+   corresponding test changes in the diff.
+
+## 4. Verify every candidate against real code
+
+For each candidate finding, call `get_file_context` (or `get_file_content` for
+wider context) to confirm it against the **actual file**, not just the diff hunk.
+Require, for every finding you keep:
+
+- a concrete `path` + `line` reference (diff-valid), and
+- a one-sentence piece of **evidence** describing what the code does and what breaks.
+
+If you cannot articulate concrete evidence, it is a stylistic guess — drop it.
+
+Use `search_codebase` **sparingly** (~10 req/min): only to confirm whether a
+pattern is handled consistently elsewhere. Pass plain text/symbols only (do not
+embed `repo:` qualifiers).
+
+## 5. Confidence filter + false-positive filters
+
+Assign each surviving finding a confidence: **high / medium / low**. Drop every
+low-confidence finding entirely — do not post it and do not mention it in the
+summary. Keep only high and medium.
+
+Also drop:
+
+- style-only / formatting preferences ("I would prefer…"),
+- undocumented personal conventions,
+- issues that are not a concrete bug, security risk, or missing test for new logic.
+
+If the real issue lives on a line the diff does not cover, put it in the
+**summary** only — never as an invalid inline comment.
+
+## 6. Deduplicate against existing comments
+
+Call `get_existing_review_comments`. Drop findings that duplicate existing
+comment text or clearly match a thread.
+
+- If `source` is `graphql` and `resolved`/`outdated` are booleans, drop
+  resolved/outdated duplicates.
+- If `source` is `rest` (or `resolved` is `null`), **warn the user** that
+  resolved status is unknown; still drop clear text duplicates; do **not** claim
+  threads are unresolved.
+
+If `incomplete` is true, note that the thread list may be partial.
+
+## 7. Only comment on diff lines
+
+Every inline comment's line **must** be a changed or context line in that file's
+hunk (RIGHT for added/context, LEFT for removed). The server rejects off-diff
+lines with a `validation` error — avoid that by choosing valid lines up front.
+
+## 8. Finding schema for the dry-run preview
+
+When previewing in chat, list each finding with:
+
+| Field | Values |
+| --- | --- |
+| severity | `high` or `medium` |
+| category | `logic` / `security` / `tests` |
+| path | file path |
+| line | integer (diff-valid) |
+| side | `RIGHT` (default) or `LEFT` |
+| evidence | one sentence: what the code does and what breaks |
+| suggested_fix | optional one-line hint |
+
+## 9. Preview, then post once
+
+1. Call `post_review` with `dry_run: true`, `commit_sha` = the remembered
+   `head_sha` (or omit it), summary + all inline comments.
+2. Show the user the summary and each finding (using the schema above); ask them
+   to confirm.
+3. Only after they confirm, call `post_review` **once** with `dry_run: false`
+   (do not call `post_comment` repeatedly).
+
+## 10. Tool-error policy (hard stops)
+
+If any tool returns `{ isError: true }`, surface `kind` + `message` to the user
+and follow:
+
+| kind | Action |
+| --- | --- |
+| `validation` (bad comment lines) | Fix using `nearest_valid_lines` / `commentable_lines`, or move to summary; retry dry_run |
+| `validation` (stale `commit_sha`) | Re-fetch diff; use new `head_sha` |
+| `rate_limit` | Stop; tell the user to wait / reduce `search_codebase` |
+| `unauthorized` / `forbidden` | Stop; token/permission problem |
+| `not_found` | Stop; check owner/repo/PR |
+| `network` / `unknown` | Stop; report and do not blindly retry |
+
+Do not blindly retry unrelated errors.
+
+## 11. Never post the review as chat text
+
+The review must land on GitHub via `post_review` (or `post_comment`), never as a
+plain chat message pretending to be the review. In chat you only preview and
+report status.

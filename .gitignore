@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# local toolchain (portable Node, etc.)
+.tools/
+
+# build output
+dist/
+
+# secrets / local env
+.env
+.env.local
+
+# Cursor MCP config: if kept project-level it may contain a live GITHUB_TOKEN.
+# Never commit it. Prefer the global ~/.cursor/mcp.json (see README).
+.cursor/mcp.json
+
+# logs
+*.log
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

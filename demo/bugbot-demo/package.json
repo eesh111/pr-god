@@ -1,0 +1,11 @@
+{
+  "name": "bugbot-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo app with intentional bugs for testing agent-driven Bugbot / pr-checker",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node test/checkout.test.js"
+  }
+}

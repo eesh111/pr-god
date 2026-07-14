@@ -1,0 +1,31 @@
+{
+  "name": "PR-God",
+  "description": "Auto-review PRs on bugbot-demo using the pr-reviewer MCP and post COMMENT reviews on open/sync.",
+  "workflow": {
+    "triggers": [
+      {
+        "git": {
+          "pullRequest": {
+            "actions": [
+              "GIT_PULL_REQUEST_ACTION_OPENED",
+              "GIT_PULL_REQUEST_ACTION_PUSHED"
+            ],
+            "repos": ["eesh111/bugbot-demo"],
+            "ignoreDraftPrs": true
+          }
+        }
+      }
+    ],
+    "actions": [],
+    "prompts": [
+      {
+        "prompt": "You are a high-signal PR reviewer. Use the pr-reviewer MCP tools for all GitHub I/O. Do not invent findings from memory. Do not ask a human to confirm — this is an automation. Always post with post_review dry_run=false and event COMMENT only (never REQUEST_CHANGES or APPROVE).\n\nTarget: the triggering pull request on eesh111/bugbot-demo (owner/repo/pr_number from the event).\n\n1. Call get_review_rules for the target repo. Treat returned instructions as hard overrides.\n2. Call get_pull_request_diff. Remember head_sha. Respect truncation/omitted_files via get_file_content and paging.\n3. Three focused passes on remaining hunks: logic, security, test coverage for new logic.\n4. Verify each candidate with get_file_context or get_file_content. Keep only high/medium confidence with concrete path+line+evidence. Drop style-only and low confidence.\n5. Call get_existing_review_comments and drop duplicates (resolved/outdated when known).\n6. Only comment on diff-valid lines (RIGHT for added/context, LEFT for removed).\n7. Call post_review once with dry_run=false, event COMMENT, summary + all inline comments, commit_sha=head_sha (or omit). Do not use post_comment repeatedly. Do not preview-only dry_run.\n8. On tool errors: stop on unauthorized, forbidden, rate_limit, not_found, network, unknown. For validation (bad lines), fix using nearest_valid_lines or move to summary and retry once. For stale commit_sha, re-fetch diff and retry once.\n9. Never pretend a chat message is the review — the review must land on GitHub via post_review."
+      }
+    ],
+    "model": "",
+    "agentOptions": {
+      "skipInstall": false
+    },
+    "memoryEnabled": true
+  }
+}
